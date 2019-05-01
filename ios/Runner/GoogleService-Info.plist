@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CLIENT_ID</key>
+	<string>658303972824-e710ssm8ti1k6kg7m83mbm2pkai46uu6.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.658303972824-e710ssm8ti1k6kg7m83mbm2pkai46uu6</string>
+	<key>ANDROID_CLIENT_ID</key>
+	<string>658303972824-la669hrgnbbhkvgq1p411hflu743rofn.apps.googleusercontent.com</string>
+	<key>API_KEY</key>
+	<string>AIzaSyBi21TZv00L_nawSDNedc7_jnDLKT0n3zk</string>
+	<key>GCM_SENDER_ID</key>
+	<string>658303972824</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.firecodes.sigapp</string>
+	<key>PROJECT_ID</key>
+	<string>sigapp-firecodes</string>
+	<key>STORAGE_BUCKET</key>
+	<string>sigapp-firecodes.appspot.com</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:658303972824:ios:fcf80e4b51e4deaf</string>
+	<key>DATABASE_URL</key>
+	<string>https://sigapp-firecodes.firebaseio.com</string>
+</dict>
+</plist>

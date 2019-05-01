@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "658303972824",
+    "firebase_url": "https://sigapp-firecodes.firebaseio.com",
+    "project_id": "sigapp-firecodes",
+    "storage_bucket": "sigapp-firecodes.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:658303972824:android:fcf80e4b51e4deaf",
+        "android_client_info": {
+          "package_name": "com.firecodes.sigapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "658303972824-la669hrgnbbhkvgq1p411hflu743rofn.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.firecodes.sigapp",
+            "certificate_hash": "389e68234d3ac709b0b260184e4a742608cdaa7f"
+          }
+        },
+        {
+          "client_id": "658303972824-5buog748g8s3dvlc8oggi6u0o49o1dli.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBPwjwOywW-j12mNIUwhQg6icQ5YM2WwVw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "658303972824-5buog748g8s3dvlc8oggi6u0o49o1dli.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "658303972824-e710ssm8ti1k6kg7m83mbm2pkai46uu6.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.firecodes.sigapp"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
