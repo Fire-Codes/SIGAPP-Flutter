@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
-void main() => runApp(MyApp());
+void main(){
+  runApp(MyApp());
+}
 
 class MyApp extends StatelessWidget {
   // This widget is the root of your application.
@@ -19,9 +21,9 @@ class MyApp extends StatelessWidget {
         // Notice that the counter didn't reset back to zero; the application
         // is not restarted.
         primarySwatch: Colors.red,
-        fontFamily: 'GoogleSans'
+        fontFamily: 'SanFrancisco'
       ),
-      home: MyHomePage(title: 'SIGAPP HOME'),
+      home: MyHomePage(title: 'SIGAPP HOME')
     );
   }
 }
