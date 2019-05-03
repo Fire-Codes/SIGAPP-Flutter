@@ -37,6 +37,7 @@ dependencies:
   floating_search_bar: ^0.2.0
   shared_preferences: ^0.5.2
   mysql1: ^0.17.0
+  html: ^0.14.0+2
 
 dev_dependencies:
   flutter_test:
