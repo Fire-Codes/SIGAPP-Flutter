@@ -14,7 +14,6 @@ void main() {
 
 // funcion que ejecuta la peticion http a los servidores de la unan leon
 Future<dynamic> extraerNotas() async {
-
   final response = await http.post(
       'https://portalestudiantes.unanleon.edu.ni/consulta_estudiantes.php',
       body: {
@@ -56,13 +55,14 @@ Future<dynamic> extraerNotas() async {
 
 class MyApp extends StatefulWidget {
   final Future<dynamic> post;
+  // variable que determinara el sistema operativo en el que se esta corriendo
+  final bool isAndroid = Platform.isAndroid;
   MyApp({Key key, this.post}) : super(key: key);
   @override
   _MyAppState createState() => _MyAppState();
 }
 
 class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
-
   // instancia de el fcm de firebase
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging();
 
@@ -88,6 +88,7 @@ class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
     super.initState();
     firebaseCloudMessaging_Listeners();
     _tabController = TabController(vsync: this, length: tabs.length);
+    print("es android: " + this.widget.isAndroid.toString());
   }
 
   // funcion para habilitar a la escucha las funciones de fcm
@@ -127,11 +128,19 @@ class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'SIGAPP',
-      theme: ThemeData(
-        primarySwatch: Colors.red,
-      ),
-      home: new RouterPage(servicio: new Servicio(),)/*Scaffold(
+        title: 'SIGAPP',
+        theme: ThemeData(
+          primarySwatch: Colors.red,
+          platform: this.widget.isAndroid
+              ? TargetPlatform.android
+              : TargetPlatform.iOS,
+        ),
+        home: new RouterPage(
+          servicio: new Servicio(
+            isAndroid: this.widget.isAndroid,
+          ),
+          isAndroid: this.widget.isAndroid,
+        ) /*Scaffold(
         appBar: AppBar(
           title: Text('SIGAPP Test'),
           bottom: TabBar(
@@ -158,6 +167,6 @@ class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
           },
         ),
       ),*/
-    );
+        );
   }
 }

@@ -6,6 +6,9 @@ abstract class BaseServicio {
 }
 
 class Servicio implements BaseServicio {
+  Servicio({this.isAndroid});
+  // se declara una variable y se inicializa por parametro para determinar la plataforma en la que esta corriendo la aplicacion
+  final bool isAndroid;
   final FirebaseDatabase db = new FirebaseDatabase();
 
   Future<void> subirTablaAlRealtimeDatabase(String tabla) async {

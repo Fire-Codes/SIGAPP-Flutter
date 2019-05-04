@@ -6,14 +6,18 @@ import 'pages/signup.dart';
 import 'pages/welcome.dart';
 import 'pages/home.dart';
 import 'pages/iniciandoSesion.dart';
+import 'dart:io' show Platform;
 
 class RouterPage extends StatefulWidget {
   // constructor
-  RouterPage({this.servicio, this.operaciones});
+  RouterPage({this.servicio, this.operaciones,this.isAndroid});
 
   // variables inicializadas por parametro de constructor para las funciones del servicio y de las operaciones
   final BaseServicio servicio;
   final BaseOperaciones operaciones;
+
+  // variable que se pasa por parametro determinando si es dispositivo ios
+  final bool isAndroid;
 
   @override
   _RouterPageState createState() => _RouterPageState();
@@ -25,40 +29,16 @@ enum AuthState { iniciado, noIniciado }
 // funcion que determinara si es usuario nuevo o no para asi saber a que pagina mandarlo
 Future<bool> determinarUsuarioNuevo() async {}
 
-Future<void> _neverSatisfied(BuildContext context) async {
-  return showDialog<void>(
-    context: context,
-    barrierDismissible: false, // user must tap button!
-    builder: (BuildContext context) {
-      return AlertDialog(
-        title: Text('Rewind and remember'),
-        content: SingleChildScrollView(
-          child: ListBody(
-            children: <Widget>[
-              Text('You will never be satisfied.'),
-              Text('You\’re like me. I’m never satisfied.'),
-            ],
-          ),
-        ),
-        actions: <Widget>[
-          FlatButton(
-            child: Text('Regret'),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
-        ],
-      );
-    },
-  );
-}
-
 class _RouterPageState extends State<RouterPage> {
   // se inicializa una variable de tipo Authstate a "noIniciado"
   AuthState authState = AuthState.noIniciado;
 
+  // variable que determinara si es ios o android
+  bool isAndroid = Platform.isAndroid;
+
   // se crea una funcin void para mandar a realizar setState de tipo Iniciado()
   void iniciado() {
+    print("la plataforma es android: "+this.isAndroid.toString());
     setState(() {
       authState = AuthState.iniciado;
     });
