@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'servicios/operaciones.dart';
 import 'servicios/servicio.dart';
 import 'dart:async';
 import 'package:http/http.dart' as http;
@@ -34,7 +35,7 @@ Future<dynamic> extraerNotas() async {
       print('Aun no se han registrado las notas para este año');
       return "Aun no se han registrado las notas para este año";
     } else {
-      var tabla = await Servicio()
+      var tabla = await Operaciones()
           .retornarTabla(response.body.toString())
           .then((String tabla) {
         return tabla;
@@ -58,7 +59,6 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
   Future<dynamic> post;
-
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging();
 
   final List<Tab> tabs = <Tab>[
