@@ -75,14 +75,14 @@ class _RouterPageState extends State<RouterPage> {
   Widget build(BuildContext context) {
     // se realiza un switch/case para la toma de deciones a ue pagina es que se enviara
     switch (authState) {
-      case AuthState.iniciado:
+      case AuthState.noIniciado:
         // en cao de que no este iniciado entonces manda a la pagina de welcome.dart
         return new WelcomePage(
           servicio: this.widget.servicio,
           onIniciado: this.iniciado,
         );
         break;
-      case AuthState.noIniciado:
+      case AuthState.iniciado:
         // en caso de que este iniciado entonces manda se raliza un condicional para ver el estado del usuario
         return FutureBuilder<bool>(
           future: determinarUsuarioNuevo(),

@@ -51,7 +51,7 @@ class _IniciandoSesionPageState extends State<IniciandoSesionPage> {
         body: Container(
           decoration: BoxDecoration(
               image: DecorationImage(
-            image: AssetImage("assets/backgroundImages/iniciandoSesion2.jpg"),
+            image: AssetImage("assets/backgroundImages/iniciandoSesion.jpg"),
           )),
         ),
       ),
