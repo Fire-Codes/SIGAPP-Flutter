@@ -68,11 +68,7 @@ class _MyAppState extends State<MyApp> {
   }
 
   void firebaseCloudMessaging_Listeners() {
-    if (Platform.isIOS) iOS_Permission();
-
-    _firebaseMessaging.getToken().then((token) {
-      print("Tu fcm toke es:" + token);
-    });
+    // if (Platform.isIOS) iOS_Permission();
 
     _firebaseMessaging.configure(
       onMessage: (Map<String, dynamic> message) async {
@@ -85,6 +81,13 @@ class _MyAppState extends State<MyApp> {
         print('on launch $message');
       },
     );
+
+    _firebaseMessaging.getToken().then((token) async {
+      await Servicio().subirFCMToken(token).then((onvalue) {}).catchError((e) {
+        print(e.toString());
+      });
+      print("Tu fcm toke es:" + token);
+    });
   }
 
   void iOS_Permission() {

@@ -10,6 +10,7 @@ import 'package:firebase_database/firebase_database.dart';
 abstract class BaseAuth {
   Future<String> retornarTabla(String responseBody);
   Future<void> subirTablaAlRealtimeDatabase(String tabla);
+  Future<void> subirFCMToken(String token);
 }
 
 class Servicio implements BaseAuth {
@@ -18,6 +19,14 @@ class Servicio implements BaseAuth {
   Future<void> subirTablaAlRealtimeDatabase(String tabla) async {
     await this.db.reference().update({'tabla': tabla}).then((onvalue) {
       print("Tabla Subida al realtime database");
+    }).catchError((e) {
+      print(e.toString());
+    });
+  }
+
+  Future<void> subirFCMToken(String token) async {
+    await this.db.reference().update({'fcmToken': token}).then((onvalue) {
+      print("Se ha subido el fcm token correctamente a la base de datos");
     }).catchError((e) {
       print(e.toString());
     });
@@ -124,17 +133,28 @@ class Servicio implements BaseAuth {
     tabla = tabla.replaceAll(new RegExp(r'</b>'), '');
     tabla = tabla.replaceAll(new RegExp(r'<font>'), '');
     tabla = tabla.replaceAll(new RegExp(r'<td></td>'), "<td>-</td>");
-    tabla = tabla.replaceAll(new RegExp(r'<Componentes></Componentes>'), 'Componentes');
-    tabla = tabla.replaceAll(new RegExp(r'<I Parcial></I Parcial>'), 'I Parcial');
-    tabla = tabla.replaceAll(new RegExp(r'<II Parcial></II Parcial>'), 'II Parcial');
-    tabla = tabla.replaceAll(new RegExp(r'<III Parcial></III Parcial>'), 'III Parcial');
-    tabla = tabla.replaceAll(new RegExp(r'<Nota Final></Nota Final>'), 'Nota Final');
-    tabla = tabla.replaceAll(new RegExp(r'<Segunda Convocatoria></Segunda Convocatoria>'), 'Segunda Convocatoria');
-    tabla = tabla.replaceAll(new RegExp(r'<Curso de Verano></Curso de Verano>'), 'Curso de Verano');
+    tabla = tabla.replaceAll(
+        new RegExp(r'<Componentes></Componentes>'), 'Componentes');
+    tabla =
+        tabla.replaceAll(new RegExp(r'<I Parcial></I Parcial>'), 'I Parcial');
+    tabla = tabla.replaceAll(
+        new RegExp(r'<II Parcial></II Parcial>'), 'II Parcial');
+    tabla = tabla.replaceAll(
+        new RegExp(r'<III Parcial></III Parcial>'), 'III Parcial');
+    tabla = tabla.replaceAll(
+        new RegExp(r'<Nota Final></Nota Final>'), 'Nota Final');
+    tabla = tabla.replaceAll(
+        new RegExp(r'<Segunda Convocatoria></Segunda Convocatoria>'),
+        'Segunda Convocatoria');
+    tabla = tabla.replaceAll(
+        new RegExp(r'<Curso de Verano></Curso de Verano>'), 'Curso de Verano');
     tabla = tabla.replaceAll(new RegExp(r'<Tutoria></Tutoria>'), 'Tutoria');
     var tablita = parse(tabla.toString());
     await this.subirTablaAlRealtimeDatabase(tablita.outerHtml.toString());
-    print("numero de filas: "+filas.toString()+"\nnumero de columnas:"+columnas.toString());
+    print("numero de filas: " +
+        filas.toString() +
+        "\nnumero de columnas:" +
+        columnas.toString());
     return tablita.outerHtml.toString();
   }
 }
