@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'servicios/operaciones.dart';
 import 'servicios/servicio.dart';
 import 'dart:async';
@@ -10,7 +11,9 @@ void main() {
   runApp(MyApp());
 }
 
+// funcion que ejecuta la peticion http a los servidores de la unan leon
 Future<dynamic> extraerNotas() async {
+
   final response = await http.post(
       'https://portalestudiantes.unanleon.edu.ni/consulta_estudiantes.php',
       body: {
@@ -58,9 +61,11 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
-  Future<dynamic> post;
+
+  // instancia de el fcm de firebase
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging();
 
+  // lista de los tabs que se mostraran en la parte principal
   final List<Tab> tabs = <Tab>[
     Tab(
       text: '2016',
@@ -71,13 +76,9 @@ class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
     Tab(
       text: '2018',
     ),
-    Tab(
-      text: '2019',
-    ),
   ];
 
-  bool extraido = false;
-
+  // instancia del controlador de los tabs
   TabController _tabController;
 
   @override
@@ -88,8 +89,9 @@ class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
     _tabController = TabController(vsync: this, length: tabs.length);
   }
 
+  // funcion para habilitar a la escucha las funciones de fcm
   void firebaseCloudMessaging_Listeners() {
-    // if (Platform.isIOS) iOS_Permission();
+    if (Platform.isIOS) iOS_Permission();
 
     _firebaseMessaging.configure(
       onMessage: (Map<String, dynamic> message) async {
@@ -111,6 +113,7 @@ class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
     });
   }
 
+  // funcion para habilitar los permisos de ios
   void iOS_Permission() {
     _firebaseMessaging.requestNotificationPermissions(
         IosNotificationSettings(sound: true, badge: true, alert: true));
