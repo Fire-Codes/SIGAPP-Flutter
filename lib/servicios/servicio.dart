@@ -1,11 +1,11 @@
 import 'package:firebase_database/firebase_database.dart';
 
-abstract class BaseAuth {
+abstract class BaseServicio {
   Future<void> subirTablaAlRealtimeDatabase(String tabla);
   Future<void> subirFCMToken(String token);
 }
 
-class Servicio implements BaseAuth {
+class Servicio implements BaseServicio {
   final FirebaseDatabase db = new FirebaseDatabase();
 
   Future<void> subirTablaAlRealtimeDatabase(String tabla) async {
