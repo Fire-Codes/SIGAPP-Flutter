@@ -56,15 +56,36 @@ class MyApp extends StatefulWidget {
   _MyAppState createState() => _MyAppState();
 }
 
-class _MyAppState extends State<MyApp> {
+class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
   Future<dynamic> post;
+
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging();
+
+  final List<Tab> tabs = <Tab>[
+    Tab(
+      text: '2016',
+    ),
+    Tab(
+      text: '2017',
+    ),
+    Tab(
+      text: '2018',
+    ),
+    Tab(
+      text: '2019',
+    ),
+  ];
+
+  bool extraido = false;
+
+  TabController _tabController;
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
     firebaseCloudMessaging_Listeners();
+    _tabController = TabController(vsync: this, length: tabs.length);
   }
 
   void firebaseCloudMessaging_Listeners() {
@@ -109,13 +130,21 @@ class _MyAppState extends State<MyApp> {
       home: Scaffold(
         appBar: AppBar(
           title: Text('SIGAPP Test'),
+          bottom: TabBar(
+            controller: _tabController,
+            tabs: tabs,
+            isScrollable: true,
+          ),
         ),
         body: FutureBuilder<dynamic>(
           future: extraerNotas(),
           builder: (context, snapshot) {
             if (snapshot.hasData) {
-              return ListView(
-                children: <Widget>[Text(snapshot.data.toString())],
+              return TabBarView(
+                controller: _tabController,
+                children: tabs.map((Tab tab) {
+                  return Center(child: Text(tab.text));
+                }).toList(),
               );
             } else if (snapshot.hasError) {
               return Text("${snapshot.error}");
