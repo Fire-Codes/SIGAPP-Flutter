@@ -43,12 +43,17 @@ class _IniciandoSesionPageState extends State<IniciandoSesionPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-            image: DecorationImage(
-          image: AssetImage("assets/backgroundImages/iniciandoSesion.png"),
-        )),
+    return MaterialApp(
+      theme: ThemeData(
+        primaryColor: Colors.blue
+      ),
+      home: Scaffold(
+        body: Container(
+          decoration: BoxDecoration(
+              image: DecorationImage(
+            image: AssetImage("assets/backgroundImages/iniciandoSesion2.jpg"),
+          )),
+        ),
       ),
     );
   }
