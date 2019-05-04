@@ -6,6 +6,7 @@ import 'dart:async';
 import 'package:http/http.dart' as http;
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'dart:io' show Platform;
+import 'router.dart';
 
 void main() {
   runApp(MyApp());
@@ -130,7 +131,7 @@ class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
       theme: ThemeData(
         primarySwatch: Colors.red,
       ),
-      home: Scaffold(
+      home: new RouterPage(servicio: new Servicio(),)/*Scaffold(
         appBar: AppBar(
           title: Text('SIGAPP Test'),
           bottom: TabBar(
@@ -156,7 +157,7 @@ class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
             return Center(child: CircularProgressIndicator());
           },
         ),
-      ),
+      ),*/
     );
   }
 }
