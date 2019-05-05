@@ -139,7 +139,7 @@ class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
           servicio: new Servicio(
             isAndroid: this.widget.isAndroid,
           ),
-          isAndroid: false,//this.widget.isAndroid,
+          isAndroid: this.widget.isAndroid,
         ) /*Scaffold(
         appBar: AppBar(
           title: Text('SIGAPP Test'),
