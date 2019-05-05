@@ -92,6 +92,7 @@ flutter:
   - assets/backgroundImages/CatedralDeLeon.jpg
   - assets/backgroundImages/iniciandoSesion.jpg
   - assets/GoogleLogo.jpg
+  - assets/FacebookLogo.png
   # assets:
   #  - images/a_dot_burr.jpeg
   #  - images/a_dot_ham.jpeg
