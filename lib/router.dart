@@ -10,7 +10,7 @@ import 'dart:io' show Platform;
 
 class RouterPage extends StatefulWidget {
   // constructor
-  RouterPage({this.servicio, this.operaciones,this.isAndroid});
+  RouterPage({this.servicio, this.operaciones, this.isAndroid});
 
   // variables inicializadas por parametro de constructor para las funciones del servicio y de las operaciones
   final BaseServicio servicio;
@@ -33,12 +33,8 @@ class _RouterPageState extends State<RouterPage> {
   // se inicializa una variable de tipo Authstate a "noIniciado"
   AuthState authState = AuthState.noIniciado;
 
-  // variable que determinara si es ios o android
-  bool isAndroid = Platform.isAndroid;
-
   // se crea una funcin void para mandar a realizar setState de tipo Iniciado()
   void iniciado() {
-    print("la plataforma es android: "+this.isAndroid.toString());
     setState(() {
       authState = AuthState.iniciado;
     });
@@ -51,15 +47,15 @@ class _RouterPageState extends State<RouterPage> {
     });
   }
 
-  @override
-  Widget build(BuildContext context) {
-    // se realiza un switch/case para la toma de deciones a ue pagina es que se enviara
+  Widget _retornarPagina() {
     switch (authState) {
       case AuthState.noIniciado:
         // en cao de que no este iniciado entonces manda a la pagina de welcome.dart
+        print("desde el router es android?" + this.widget.isAndroid.toString());
         return new WelcomePage(
           servicio: this.widget.servicio,
           onIniciado: this.iniciado,
+          isAndroid: this.widget.isAndroid,
         );
         break;
       case AuthState.iniciado:
@@ -75,10 +71,24 @@ class _RouterPageState extends State<RouterPage> {
               return Text("${snapshot.error}");
             }
             // By default, show a loading spinner
-            return IniciandoSesionPage();
+            return IniciandoSesionPage(
+              isAndroid: this.widget.isAndroid,
+            );
           },
         );
         break;
     }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // se realiza un switch/case para la toma de deciones a ue pagina es que se enviara
+    return MaterialApp(
+      theme: ThemeData(
+          platform: this.widget.isAndroid
+              ? TargetPlatform.android
+              : TargetPlatform.iOS),
+      home: _retornarPagina(),
+    );
   }
 }
