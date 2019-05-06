@@ -1,0 +1,29 @@
+- La visualizacion de las notas del SIGACAD dentro de la app.
+- Opcion de recuperar su pin y carnet
+- Opcion de ver su pentsum academico
+- Alertar cuando una nueva nota o clase ha sido inscrita
+- El porcentaje de la carrera concluida
+- Opcion para ver su matricula
+- Algoritmo de recomendacion de componentes a inscribir
+- SIGAPP
+
+
+que : Desarrollo de una Aplicacion movil Multiplataforma
+como: utilizando Framework IONIC
+cuando: en el periodo de Agosto a Diciembre 2018
+donde: Universidad Nacional Autonoma de Nicaragua
+para que sirve:para facilitar el acceso a las  notas 
+
+Desarrollar una Aplicacion movil Multiplataforma utilizando el Framework IONIC para facilitar a los estudiantes
+el acceso a la informacion academica de la Universidad Nacional Autonoma de Nicaragua - Leon  en el periodo de Agosto 
+a Diciembre 2018.
+
+OE:
+	- Analizar la Informacion academica disponible en el Sistema de Gestion Academica de la UNAN - LEON (SIGACAD).
+	- Desarrollo de las Interfaces utilizando codigo SASS.
+	- Programar la aplicacion para acceder a la informacion academica.
+
+OG:
+	- 
+
+
