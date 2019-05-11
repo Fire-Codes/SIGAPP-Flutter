@@ -83,12 +83,6 @@ class _RouterPageState extends State<RouterPage> {
   @override
   Widget build(BuildContext context) {
     // se realiza un switch/case para la toma de deciones a ue pagina es que se enviara
-    return MaterialApp(
-      theme: ThemeData(
-          platform: this.widget.isAndroid
-              ? TargetPlatform.android
-              : TargetPlatform.iOS),
-      home: _retornarPagina(),
-    );
+    return _retornarPagina();
   }
 }

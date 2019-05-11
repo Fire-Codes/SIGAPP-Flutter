@@ -13,43 +13,69 @@ void main() {
 }
 
 // funcion que ejecuta la peticion http a los servidores de la unan leon
-Future<dynamic> extraerNotas() async {
-  final response = await http.post(
-      'https://portalestudiantes.unanleon.edu.ni/consulta_estudiantes.php',
-      body: {
-        'carnet': '16-02095-0',
-        'pin': 'RWLKCY',
-        'anyo_lec': '2016',
-        'tipo': '',
-        'mandar': 'Visualizar',
-        'npag': '2',
-      });
+Future<List> extraerNotas() async {
+  int vueltas = 0;
+  int anoLectivo = 2016;
+  List<String> responses = new List<String>();
+  bool continuar = true;
+  do {
+    final response = await http.post(
+        'https://portalestudiantes.unanleon.edu.ni/consulta_estudiantes.php',
+        body: {
+          'carnet': '16-02095-0',
+          'pin': 'RWLKCY',
+          'anyo_lec': '$anoLectivo',
+          'tipo': '',
+          'mandar': 'Visualizar',
+          'npag': '2',
+        });
+    if (response.statusCode == 200) {
+      // If the call to the server was successful, parse the JSON
+      if (response.body.toString().contains("alert('PIN no válido');")) {
+        print('Pin no valido');
+        continuar = false;
+        //return "Pin no válido";
+      } else if (response.body
+          .toString()
+          .contains("window.alert('No han registrado las notas');")) {
+        print('Aun no se han registrado las notas para este año');
+        continuar = false;
+        //return "Aun no se han registrado las notas para este año";
+      } else {
+        var tabla = await Operaciones()
+            .retornarTabla(response.body.toString())
+            .then((String tabla) {
+          return tabla;
+        }).catchError((e) {
+          print(e.toString());
+        });
+        responses.add(await tabla.toString());
+        vueltas++;
+        anoLectivo++;
+      }
+    } else {
+      // If that call was not successful, throw an error.
+      throw Exception('Failed to load post');
+    }
+  } while (continuar);
+  return await responses;
   /*final response =
   await http.get('https://www.google.com');*/
+}
+
+Future<String> extraerPentsum() async {
+  final response = await http
+      .get('https://portalestudiantes.unanleon.edu.ni/pensum_academico.php');
 
   if (response.statusCode == 200) {
-    // If the call to the server was successful, parse the JSON
-    if (response.body.toString().contains("alert('PIN no válido');")) {
-      print('Pin no valido');
-      return "Pin no válido";
-    } else if (response.body
-        .toString()
-        .contains("window.alert('No han registrado las notas');")) {
-      print('Aun no se han registrado las notas para este año');
-      return "Aun no se han registrado las notas para este año";
-    } else {
-      var tabla = await Operaciones()
-          .retornarTabla(response.body.toString())
-          .then((String tabla) {
-        return tabla;
-      }).catchError((e) {
-        print(e.toString());
-      });
-      return await tabla.toString();
-    }
-  } else {
-    // If that call was not successful, throw an error.
-    throw Exception('Failed to load post');
+    var tabla = await Operaciones()
+        .extraerCodigosFacultad(response.body.toString())
+        .then((String tabla) {
+      return tabla;
+    }).catchError((e) {
+      print(e.toString());
+    });
+    return await tabla.toString();
   }
 }
 
@@ -135,12 +161,48 @@ class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
               ? TargetPlatform.android
               : TargetPlatform.iOS,
         ),
-        home: new RouterPage(
+        home: Scaffold(
+            body: FutureBuilder<dynamic>(
+          future: extraerPentsum(),
+          builder: (context, snapshot) {
+            if (snapshot.hasData) {
+              return ListView(
+                children: <Widget>[Text(snapshot.data.toString())],
+              );
+            }
+            return Center(child: CircularProgressIndicator());
+          },
+        )
+            /*FutureBuilder<List<dynamic>>(
+            future: extraerNotas(),
+            builder: (context, snapshot) {
+              if (snapshot.hasData) {
+                return ListView.builder(
+                  itemCount: snapshot.data.length,
+                  itemBuilder: (BuildContext ctx, int index){
+                    return Text(snapshot.data[index].toString());
+                  },
+                );
+                /*TabBarView(
+                  controller: _tabController,
+                  children: tabs.map((Tab tab) {
+                    return Center(child: Text(tab.text));
+                  }).toList(),
+                );*/
+              } else if (snapshot.hasError) {
+                return Text("${snapshot.error}");
+              }
+              // By default, show a loading spinner
+              return Center(child: CircularProgressIndicator());
+            },
+          ),*/
+            )
+        /*new RouterPage(
           servicio: new Servicio(
             isAndroid: this.widget.isAndroid,
           ),
           isAndroid: this.widget.isAndroid,
-        ) /*Scaffold(
+        )*/ /*Scaffold(
         appBar: AppBar(
           title: Text('SIGAPP Test'),
           bottom: TabBar(

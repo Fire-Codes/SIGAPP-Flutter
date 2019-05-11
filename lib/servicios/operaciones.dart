@@ -1,13 +1,17 @@
 import 'dart:async';
+import 'package:html/dom.dart';
 import 'package:html/parser.dart';
 import 'servicio.dart';
+import 'package:http/http.dart' as http;
 
-abstract class BaseOperaciones{
+abstract class BaseOperaciones {
   Future<String> retornarTabla(String responseBody);
+  Future<void> extraerCodigosFacultad(String responseBody);
+  Future<int> subirCodigosFacultad(Node tr);
+  Future<String> formatearPaginaDeCodigosDeCarrerasPorFacultad(String bodyResponse);
 }
 
 class Operaciones implements BaseOperaciones {
-
   final servicio = new Servicio();
 
   Future<String> retornarTabla(String responseBody) async {
@@ -128,11 +132,75 @@ class Operaciones implements BaseOperaciones {
         new RegExp(r'<Curso de Verano></Curso de Verano>'), 'Curso de Verano');
     tabla = tabla.replaceAll(new RegExp(r'<Tutoria></Tutoria>'), 'Tutoria');
     var tablita = parse(tabla.toString());
-    await this.servicio.subirTablaAlRealtimeDatabase(tablita.outerHtml.toString());
+    await this
+        .servicio
+        .subirTablaAlRealtimeDatabase(tablita.outerHtml.toString());
     print("numero de filas: " +
         filas.toString() +
         "\nnumero de columnas:" +
         columnas.toString());
     return tablita.outerHtml.toString();
+  }
+
+  Future<String> extraerCodigosFacultad(String responseBody) async {
+    // print("el dato pasado es: $responseBody}");
+    responseBody = responseBody.replaceAll(new RegExp(r'\n'), "");
+    responseBody = responseBody.replaceAll(new RegExp(r'\t'), "");
+    responseBody = responseBody.replaceAll(new RegExp(r'\r'), "");
+    //responseBody = responseBody.replaceAll(new RegExp(r'\/'), "");
+    responseBody = responseBody.replaceAll(new RegExp(r'\"'), "");
+    responseBody = responseBody.replaceRange(0, 11476, "");
+    responseBody = responseBody.replaceRange(863, responseBody.length, "");
+    print(responseBody.length.toString());
+    var tabla = parse(responseBody);
+    await this
+        .servicio
+        .subirTablaAlRealtimeDatabase(tabla.outerHtml.toString());
+    var select = tabla.querySelector('body > select');
+    int selectLenght = select.nodes.length;
+    print("hay $selectLenght facultades");
+    for (int i = 1; i < selectLenght; i++) {
+      subirCodigosFacultad(
+          select.querySelector('body > select > option:nth-child($i)'));
+    }
+    return await select.outerHtml.toString();
+  }
+
+  Future<int> subirCodigosFacultad(Node tr) async {
+    int codigo;
+    String nombre;
+    codigo = int.parse(tr.attributes['value'].toString());
+    nombre = tr.text.toString();
+    print(nombre + ": $codigo");
+    await this
+        .servicio
+        .subirCodigoFacultad(codigo, nombre)
+        .then((int codigo) async {
+      await this.extraerPaginaDeCarrerasPorFacultad(codigo);
+    }).catchError((e) {
+      print(e.toString());
+    });
+  }
+
+  Future<void> extraerPaginaDeCarrerasPorFacultad(int codigoFacultad) async {
+    final response = await http.post(
+        'https://portalestudiantes.unanleon.edu.ni/funciones.php?npage=1',
+        body: {'facultad': '$codigoFacultad'});
+
+    if (response.statusCode == 200) {
+      var selectDeCarrerasFormateado = this.formatearPaginaDeCodigosDeCarrerasPorFacultad(response.body.toString()).then((String codigoFormateado){
+        return codigoFormateado;
+      }).catchError((e){
+        print(e.toString());
+      });
+      return await selectDeCarrerasFormateado.toString();
+    }
+  }
+
+  Future<String> formatearPaginaDeCodigosDeCarrerasPorFacultad(String bodyResponse) async {
+    bodyResponse = bodyResponse+='</select>';
+    var selectFormateado = await parse(bodyResponse);
+    print(selectFormateado.outerHtml.toString());
+    return selectFormateado.outerHtml.toString();
   }
 }

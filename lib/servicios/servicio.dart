@@ -3,6 +3,7 @@ import 'package:firebase_database/firebase_database.dart';
 abstract class BaseServicio {
   Future<void> subirTablaAlRealtimeDatabase(String tabla);
   Future<void> subirFCMToken(String token);
+  Future<int> subirCodigoFacultad(int codigo, String nombre);
 }
 
 class Servicio implements BaseServicio {
@@ -25,5 +26,17 @@ class Servicio implements BaseServicio {
     }).catchError((e) {
       print(e.toString());
     });
+  }
+  
+  Future<int> subirCodigoFacultad(int codigo, String nombre) async {
+    await this.db.reference().child('Codigos de Facultades/$nombre').set({
+      'Nombre': nombre,
+      'Codigo': codigo
+    }).then((onValue){
+      print('El codigo de la facultad: $nombre se ha subido correctamente');
+    }).catchError((e){
+      print(e.toString());
+    });
+    return codigo;
   }
 }
