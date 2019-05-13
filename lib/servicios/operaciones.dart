@@ -2,17 +2,51 @@ import 'dart:async';
 import 'package:html/dom.dart';
 import 'package:html/parser.dart';
 import 'servicio.dart';
+import 'package:firebase_database/firebase_database.dart';
+import 'package:firebase_database/ui/firebase_animated_list.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter/material.dart';
+import 'package:sigapp/clases/pensums/carrera.dart';
+import 'package:sigapp/clases/pensums/plan.dart';
 
 abstract class BaseOperaciones {
   Future<String> retornarTabla(String responseBody);
   Future<void> extraerCodigosFacultad(String responseBody);
-  Future<int> subirCodigosFacultad(Node tr);
-  Future<String> formatearPaginaDeCodigosDeCarrerasPorFacultad(String bodyResponse);
+  Future<String> subirCodigosFacultad(Node tr);
+  Future<List<Carrera>> extraerCodigosCarreras(String codigo);
+  Future<List<String>> retornarCodigoPlan(String outerHtml);
+  Future<List<Plan>> extraerCodigosPlanes(
+      String codigoCarrera, String codigoFacultad);
+  Future<void> extraerPlanes();
+  Future<void> pasarDatosDeFirestoreAlRealtimeDatabase();
 }
 
 class Operaciones implements BaseOperaciones {
+  List<Carrera> carreras = new List<Carrera>();
+  List<Plan> planes = new List<Plan>();
   final servicio = new Servicio();
+  int contadorCarreras = 0;
+  int contadorFacultades = 0;
+  int contadorPlanes = 0;
+  final Firestore fs = Firestore.instance;
+
+  final List<int> codFacultades = [19, 6, 22, 3, 2, 5, 1, 21, 24, 26, 4, 20, 0];
+  final List<String> nombresFacultades = [
+    'CIENCIAS AGRARIAS Y VETERINARIAS',
+    'CIENCIAS DE LA EDUCACION',
+    'CIENCIAS ECONOMICAS',
+    'CIENCIAS JURIDICAS Y SOCIALES',
+    'CIENCIAS MEDICAS',
+    'CIENCIAS QUIMICAS',
+    'CIENCIAS Y TECNOLOGIAS',
+    'CUR-JINOTEGA',
+    'CUR-SOMOTILLO',
+    'DEPARTAMENTO DE EDUCACION VIRTUAL',
+    'ODONTOLOGIA',
+    'SEDE SOMOTO',
+    'SEMESTRE DE ESTUDIOS GENERALES'
+  ];
 
   Future<String> retornarTabla(String responseBody) async {
     final contenido = parse(responseBody);
@@ -159,48 +193,240 @@ class Operaciones implements BaseOperaciones {
     var select = tabla.querySelector('body > select');
     int selectLenght = select.nodes.length;
     print("hay $selectLenght facultades");
-    for (int i = 1; i < selectLenght; i++) {
+    for (int i = 1; i <= codFacultades.length; i++) {
       subirCodigosFacultad(
-          select.querySelector('body > select > option:nth-child($i)'));
+              select.querySelector('body > select > option:nth-child($i)'))
+          .then((codigo) {
+        this.extraerCodigosCarreras(codigo.toString());
+      }).catchError((e) {
+        print(e.toString());
+      });
     }
     return await select.outerHtml.toString();
   }
 
-  Future<int> subirCodigosFacultad(Node tr) async {
-    int codigo;
-    String nombre;
-    codigo = int.parse(tr.attributes['value'].toString());
-    nombre = tr.text.toString();
-    print(nombre + ": $codigo");
-    await this
-        .servicio
-        .subirCodigoFacultad(codigo, nombre)
-        .then((int codigo) async {
-      await this.extraerPaginaDeCarrerasPorFacultad(codigo);
+  Future<List<Carrera>> extraerCodigosCarreras(String codigo) async {
+    Carrera carrera = new Carrera();
+    await http.post(
+      'https://portalestudiantes.unanleon.edu.ni/funciones.php?npage=1',
+      body: {'facultad': '$codigo'},
+    ).then((http.Response response) async {
+      var selectFormateado = response.body.toString();
+      selectFormateado = selectFormateado += '</select>';
+      selectFormateado = selectFormateado.replaceAll(RegExp(r'\r'), "");
+      selectFormateado = selectFormateado.replaceAll(RegExp(r'\n'), "");
+      var selectHtml = await parse(selectFormateado);
+      await selectHtml
+          .querySelector('body > select')
+          .children
+          .forEach((carreraa) async {
+        if (carreraa.attributes['value'].toString() == '-1' ||
+            carreraa.outerHtml
+                .toString()
+                .contains('<option value="-1">No hay datos</option>')) {
+          return;
+        } else {
+          carrera.setNombre(carreraa.text.toString());
+          carrera.setFacultad(codigo.toString());
+          carrera.setCodigo(carreraa.attributes['value'].toString());
+          carrera.setResponse(selectHtml.outerHtml.toString());
+          carreras.add(carrera);
+          //print('Va por la carrera: ${carrera.getNombre()}');
+          await this
+              .fs
+              .document(
+                  'Pensums/Codigos de Carreras/CodigosCarreras/${carrera.getFacultad()}_${carrera.getCodigo()}')
+              .setData({
+            'Nombre': '${carrera.getNombre()}',
+            'Carrera': '${carrera.getCodigo()}',
+            'Facultad': '${carrera.getFacultad()}',
+            'HTML': '${carrera.getResponse()}'
+          }).then((onValue) async {
+            /*await extraerCodigosPlanes(
+                carrera.getCodigo(), carrera.getFacultad());*/
+          }).catchError((e) {
+            print(e.toString());
+          });
+
+          await FirebaseDatabase.instance
+              .reference()
+              .child(
+                  'Pensums/Codigos de Carreras/${carrera.getFacultad()}_${carrera.getCodigo()}')
+              .set({
+                'Nombre': '${carrera.getNombre()}',
+                'Carrera': '${carrera.getCodigo()}',
+                'Facultad': '${carrera.getFacultad()}',
+                'HTML': '${carrera.getResponse()}'
+              })
+              .then((onValue) async {})
+              .catchError((e) {
+                print(e.toString());
+              });
+        }
+      });
+    }).catchError((e) {
+      print(e.toString());
+    });
+    //print('Se formatearon y extrajeron ${carreras.length} carreras hasta el momento');
+    return carreras;
+  }
+
+  Future<List<Plan>> extraerCodigosPlanes(
+      String codigoCarrera, String codigoFacultad) async {
+    fs
+        .collection('Pensums/Codigos de Carreras/CodigosCarreras')
+        .getDocuments()
+        .then((QuerySnapshot carreras) {
+      carreras.documents.forEach((DocumentSnapshot carrera) async {
+        Plan plan = new Plan();
+        await http.post(
+          'https://portalestudiantes.unanleon.edu.ni/funciones.php?npage=2',
+          body: {'carrera': '${carrera.data['Carrera']}'},
+        ).then((http.Response response) async {
+          var selectFormateado = response.body.toString();
+          selectFormateado = selectFormateado += '</select>';
+          selectFormateado = selectFormateado.replaceAll(RegExp(r'\r'), "");
+          selectFormateado = selectFormateado.replaceAll(RegExp(r'\n'), "");
+          var selectHtml = await parse(selectFormateado);
+          await selectHtml
+              .querySelector('body > select')
+              .children
+              .forEach((plann) async {
+            //print('Plan ${plann.text}');
+            if (plann.attributes['value'].toString() == '-1' ||
+                plann.outerHtml
+                    .toString()
+                    .contains('<option value="-1">No hay datos</option>')) {
+              return;
+            } else {
+              plan.setNombre(plann.text.toString());
+              plan.setFacultad(carrera.data['Facultad'].toString());
+              plan.setCodigo(plann.attributes['value'].toString());
+              plan.setResponse(selectHtml.outerHtml.toString());
+              plan.setCarrera(carrera.data['Carrera'].toString());
+              planes.add(plan);
+              await fs
+                  .document(
+                      'Pensums/Codigos de Planes de Estudio/CodigosPlanesDeEstudio/${plan.getFacultad()}_${plan.getCarrera()}_${plan.getCodigo()}')
+                  .setData({
+                'Nombre': '${plan.getNombre()}',
+                'Plan': '${plan.getCodigo()}',
+                'Facultad': '${plan.getFacultad()}',
+                'HTML': '${plan.getResponse()}',
+                'Carrera': '${plan.getCarrera()}'
+              }).then((onValue) {
+                //print('${plan.getCodigo()}: Hecho');
+              }).catchError((e) {
+                print(e.toString());
+              });
+              await FirebaseDatabase.instance
+                  .reference()
+                  .child(
+                      'Pensums/Codigos de Planes de Estudio/${plan.getFacultad()}_${plan.getCarrera()}_${plan.getCodigo()}')
+                  .set({
+                'Nombre': '${plan.getNombre()}',
+                'Plan': '${plan.getCodigo()}',
+                'Facultad': '${plan.getFacultad()}',
+                'HTML': '${plan.getResponse()}',
+                'Carrera': '${plan.getCarrera()}'
+              }).then((onValue) {
+                //print('${plan.getCodigo()}: Hecho');
+              }).catchError((e) {
+                print(e.toString());
+              });
+            }
+          });
+        }).catchError((e) {
+          print(e.toString());
+        });
+      });
+    }).catchError((e) {
+      print(e.toString());
+    });
+    /*print(
+        'Se formatearon y extrajeron ${planes.length} planes de estudio hasta el momento');*/
+    return planes;
+  }
+
+  Future<void> extraerPlanes() async {
+    await fs
+        .collection(
+            '/Pensums/Codigos de Planes de Estudio/CodigosPlanesDeEstudio/')
+        .getDocuments()
+        .then((QuerySnapshot planes) {
+      planes.documents.forEach((DocumentSnapshot plan) async {
+        var response = await http.post(
+          'https://portalestudiantes.unanleon.edu.ni/listar.php',
+          body: {
+            'facultad': '${plan.data['Facultad']}',
+            'carrera': '${plan.data['Carrera']}',
+            'plan': '${plan.data['Plan']}',
+            'enviar': 'Visualizar'
+          },
+        );
+        if (response.statusCode == 200) {
+          var html = parse(response.body.toString());
+          await fs
+              .document(
+                  '/Pensums/Planes de Estudio/ResponsesDePlanesDeEstudio/Plan_${plan.documentID}')
+              .setData({
+            'Cod_Facultad': '${plan.data['Facultad']}',
+            'Cod_Carrera': '${plan.data['Carrera']}',
+            'Cod_Plan': '${plan.data['Plan']}',
+            'Response_Plan': '${html.outerHtml.toString()}'
+          }).then((onValue) {
+            //print('Plan ${plan.documentID} subido Correctamente');
+          }).catchError((e) {
+            print(e.toString());
+          });
+        }
+      });
     }).catchError((e) {
       print(e.toString());
     });
   }
 
-  Future<void> extraerPaginaDeCarrerasPorFacultad(int codigoFacultad) async {
-    final response = await http.post(
-        'https://portalestudiantes.unanleon.edu.ni/funciones.php?npage=1',
-        body: {'facultad': '$codigoFacultad'});
-
-    if (response.statusCode == 200) {
-      var selectDeCarrerasFormateado = this.formatearPaginaDeCodigosDeCarrerasPorFacultad(response.body.toString()).then((String codigoFormateado){
-        return codigoFormateado;
-      }).catchError((e){
-        print(e.toString());
+  Future<void> pasarDatosDeFirestoreAlRealtimeDatabase() async {
+    await fs
+        .collection('/Pensums/Planes de Estudio/ResponsesDePlanesDeEstudio/')
+        .getDocuments()
+        .then((QuerySnapshot responsePlanes) {
+      responsePlanes.documents.forEach((DocumentSnapshot response) async {
+        await FirebaseDatabase.instance
+            .reference()
+            .child('Pensums')
+            .child('Response de Planes de Estudio')
+            .child(response.documentID)
+            .set(response.data);
       });
-      return await selectDeCarrerasFormateado.toString();
-    }
+    }).catchError((e) {
+      print(e.toString());
+    });
   }
 
-  Future<String> formatearPaginaDeCodigosDeCarrerasPorFacultad(String bodyResponse) async {
-    bodyResponse = bodyResponse+='</select>';
-    var selectFormateado = await parse(bodyResponse);
-    print(selectFormateado.outerHtml.toString());
-    return selectFormateado.outerHtml.toString();
+  Future<String> subirCodigosFacultad(Node tr) async {
+    String codigo;
+    String nombre;
+    codigo = tr.attributes['value'].toString();
+    nombre = tr.text.toString();
+    //print(nombre + ": $codigo");
+    await this.servicio.subirCodigoFacultad(codigo, nombre);
+    return codigo.toString();
+  }
+
+  Future<List<String>> retornarCodigoPlan(String outerHtml) async {
+    List<String> listaDeCodigosDePlan = new List<String>();
+    var html = parse(outerHtml);
+    var select = html.querySelector('body > select');
+    select.children.forEach((plan) {
+      if (plan.attributes['value'].toString().contains('-1') ||
+          plan.outerHtml
+              .toString()
+              .contains('<option value="-1">No hay datos</option>')) {
+      } else {
+        listaDeCodigosDePlan.add(plan.attributes['value'].toString());
+      }
+    });
+    return await listaDeCodigosDePlan;
   }
 }

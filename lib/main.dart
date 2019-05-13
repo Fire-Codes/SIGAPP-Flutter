@@ -7,9 +7,42 @@ import 'package:http/http.dart' as http;
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'dart:io' show Platform;
 import 'router.dart';
+import 'package:firebase_database/firebase_database.dart';
+import 'package:firebase_database/ui/firebase_animated_list.dart';
+import 'package:sigapp/clases/pensums/carrera.dart';
 
 void main() {
   runApp(MyApp());
+}
+
+List<Carrera> peticionesParaPlanes = new List<Carrera>();
+Carrera carrera = new Carrera();
+int contador = 0;
+
+Future<void> recorrerLista() async {
+  peticionesParaPlanes.forEach((Carrera carrera) async {
+    var responseFormateado = carrera.getResponse();
+    responseFormateado = responseFormateado += '</select>';
+    responseFormateado = responseFormateado.replaceAll(new RegExp(r'\n'), "");
+    responseFormateado = responseFormateado.replaceAll(new RegExp(r'\r'), "");
+    await Operaciones()
+        .retornarCodigoPlan(responseFormateado)
+        .then((List<String> codigosPlan) {
+      codigosPlan.forEach((String codigo) async {
+        await FirebaseDatabase.instance
+            .reference()
+            .child(
+                'Pensums/Codigos de Planes de Estudio/${carrera.getFacultad()}_${carrera.getCodigo()}_$codigo')
+            .set({
+          'Facultad': '${carrera.getFacultad()}',
+          'Carrera': '${carrera.getCodigo()}',
+          'Plan': '$codigo'
+        });
+      });
+    }).catchError((e) {
+      print(e.toString());
+    });
+  });
 }
 
 // funcion que ejecuta la peticion http a los servidores de la unan leon
@@ -64,20 +97,48 @@ Future<List> extraerNotas() async {
 }
 
 Future<String> extraerPentsum() async {
-  final response = await http
+  var response = await http
       .get('https://portalestudiantes.unanleon.edu.ni/pensum_academico.php');
-
   if (response.statusCode == 200) {
-    var tabla = await Operaciones()
+    await Operaciones()
         .extraerCodigosFacultad(response.body.toString())
-        .then((String tabla) {
-      return tabla;
+        .then((onValue) async {
+      await Operaciones().extraerCodigosPlanes('0', '0').then((planes) async {
+        await Operaciones().extraerPlanes().then((onValues) async {
+          await Operaciones().pasarDatosDeFirestoreAlRealtimeDatabase();
+        }).catchError((e) {
+          print(e.toString());
+        });
+      }).catchError((e) {
+        print(e.toString());
+      });
     }).catchError((e) {
       print(e.toString());
     });
-    return await tabla.toString();
+    return 'Hecho';
   }
 }
+
+/*Future<Widget> realizarPeticiones(DataSnapshot snapshot) async {
+  Clase clase = new Clase();
+  clase.setCarrera(snapshot.value['Carrera'].toString());
+  clase.setFacultad(snapshot.value['Facultad'].toString());
+  await http.post(
+      'https://portalestudiantes.unanleon.edu.ni/funciones.php?npage=2',
+      body: {
+        'carrera': '${snapshot.value['Carrera']}'
+      }).then((http.Response response) {
+    clase.setResponse(response.body.toString());
+    peticionesParaPlanes.add(clase);
+  }).catchError((e) {
+    print(e.toString());
+  });
+  contador += 1;
+  if (contador == 183) {
+    recorrerLista();
+    return Text('');
+  }
+}*/
 
 class MyApp extends StatefulWidget {
   final Future<dynamic> post;
@@ -151,6 +212,16 @@ class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
     });
   }
 
+  _onEntryAddedCarrera(Event event) {
+    setState(() {
+      peticionesParaPlanes.clear();
+      peticionesParaPlanes.add(Carrera.fromSnapshot(event.snapshot));
+      peticionesParaPlanes.forEach((Carrera carrera) {
+        recorrerLista();
+      });
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -162,7 +233,54 @@ class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
               : TargetPlatform.iOS,
         ),
         home: Scaffold(
-            body: FutureBuilder<dynamic>(
+            body: new RouterPage(
+          servicio: new Servicio(
+            isAndroid: this.widget.isAndroid,
+          ),
+          isAndroid: this.widget.isAndroid,
+        )
+            /*FirebaseAnimatedList(
+                query: FirebaseDatabase.instance
+                    .reference()
+                    .child('CodigosDePlanesDeEstudioCompletos'),
+                itemBuilder: (context, snapshot, animation, index) {
+                  return FutureBuilder<Widget>(
+                    future: realizarPeticiones(snapshot),
+                    builder: (context, response) {
+                      if (response.hasData) {
+                        return ListTile(
+                          title: Text(
+                            snapshot.value['Carrera'],
+                            style: TextStyle(
+                              fontFamily: 'SanFrancisco',
+                              color: Colors.black,
+                            ),
+                          ),
+                          leading: CircleAvatar(
+                            backgroundColor: Colors.red,
+                            child: Text(
+                              snapshot.value['Facultad'],
+                              style: TextStyle(
+                                fontFamily: 'SanFrancisco',
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                          trailing: Text(
+                            snapshot.value['Plan'],
+                            style: TextStyle(
+                              color: Colors.grey,
+                              fontFamily: 'SanFrancisco',
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        );
+                      }
+                      return Text('');
+                    },
+                  );
+                })*/
+            /*FutureBuilder<dynamic>(
           future: extraerPentsum(),
           builder: (context, snapshot) {
             if (snapshot.hasData) {
@@ -172,14 +290,14 @@ class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
             }
             return Center(child: CircularProgressIndicator());
           },
-        )
+        )*/
             /*FutureBuilder<List<dynamic>>(
-            future: extraerNotas(),
+            future: extraerPentsum(),
             builder: (context, snapshot) {
               if (snapshot.hasData) {
                 return ListView.builder(
                   itemCount: snapshot.data.length,
-                  itemBuilder: (BuildContext ctx, int index){
+                  itemBuilder: (BuildContext ctx, int index) {
                     return Text(snapshot.data[index].toString());
                   },
                 );
