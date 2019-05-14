@@ -27,7 +27,9 @@ class RouterPage extends StatefulWidget {
 enum AuthState { iniciado, noIniciado }
 
 // funcion que determinara si es usuario nuevo o no para asi saber a que pagina mandarlo
-Future<bool> determinarUsuarioNuevo() async {}
+Future<bool> determinarUsuarioNuevo() async {
+  return false;
+}
 
 class _RouterPageState extends State<RouterPage> {
   // se inicializa una variable de tipo Authstate a "noIniciado"
@@ -49,7 +51,7 @@ class _RouterPageState extends State<RouterPage> {
 
   Widget _retornarPagina() {
     switch (authState) {
-      case AuthState.noIniciado:
+      case AuthState.iniciado:
         // en cao de que no este iniciado entonces manda a la pagina de welcome.dart
         print("desde el router es android?" + this.widget.isAndroid.toString());
         return new WelcomePage(
@@ -58,24 +60,33 @@ class _RouterPageState extends State<RouterPage> {
           isAndroid: this.widget.isAndroid,
         );
         break;
-      case AuthState.iniciado:
+      case AuthState.noIniciado:
         // en caso de que este iniciado entonces manda se raliza un condicional para ver el estado del usuario
-        return FutureBuilder<bool>(
+        return HomePage(
+          isAndroid: this.widget.isAndroid,
+          onCerrarSesion: this.noIniciado,
+          servicio: this.widget.servicio,
+        );
+        /*FutureBuilder<bool>(
           future: determinarUsuarioNuevo(),
           builder: (context, snapshot) {
             if (snapshot.hasData) {
               return snapshot.data.toString() == 'true'
                   ? SignupPage()
-                  : HomePage();
+                  : HomePage(
+                      isAndroid: this.widget.isAndroid,
+                      onCerrarSesion: this.noIniciado,
+                      servicio: this.widget.servicio,
+                    );
             } else if (snapshot.hasError) {
               return Text("${snapshot.error}");
             }
-            // By default, show a loading spinner
+            // Por Defecto muestra la pagina de iniciando sesion
             return IniciandoSesionPage(
               isAndroid: this.widget.isAndroid,
             );
           },
-        );
+        );*/
         break;
     }
   }
