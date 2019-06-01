@@ -44,8 +44,7 @@ Widget _retorno(
                 icon: Icon(Icons.multiline_chart),
                 title: Text('Estadísticas'),
               ),
-            ],
-            selectedItemColor: Colors.red,
+            ]
           )
         : CupertinoTabBar(
             items: <BottomNavigationBarItem>[
